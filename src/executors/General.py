@@ -8,13 +8,10 @@ import os
 import sys
 
 # Utils fonksiyonları
-from components.CameraFocus.src.utils.utils import (
-    process_image
-)
+from components.CameraFocus.src.utils.utils import process_image
+
 # Response oluşturucu
-from components.CameraFocus.src.utils.response import (
-    build_general_response
-)
+from components.CameraFocus.src.utils.response import build_general_response
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../'))
 

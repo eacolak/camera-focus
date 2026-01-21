@@ -7,11 +7,7 @@
 import os
 import sys
 
-# Utils fonksiyonları
-from components.CameraFocus.src.utils.utils import process_image
 
-# Response oluşturucu
-from components.CameraFocus.src.utils.response import build_general_response
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../'))
 
@@ -19,6 +15,12 @@ from sdks.novavision.src.media.image import Image
 from sdks.novavision.src.base.component import Component
 from sdks.novavision.src.helper.executor import Executor
 from components.CameraFocus.src.models.PackageModel import PackageModel
+
+# Utils fonksiyonları
+from components.CameraFocus.src.utils.utils import process_image
+
+# Response oluşturucu
+from components.CameraFocus.src.utils.response import build_general_response
 
 
 class Package(Component):

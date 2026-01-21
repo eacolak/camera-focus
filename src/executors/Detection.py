@@ -7,13 +7,7 @@
 import os
 import sys
 
-# Utils fonksiyonları
-from components.CameraFocus.src.utils.utils import process_image
 
-# Response oluşturucu
-from components.CameraFocus.src.utils.response import (
-    build_detections_response
-)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../'))
 
@@ -22,13 +16,18 @@ from sdks.novavision.src.base.component import Component
 from sdks.novavision.src.helper.executor import Executor
 from components.CameraFocus.src.models.PackageModel import PackageModel
 
+from components.CameraFocus.src.utils.utils import process_image
 
-class Package(Component):
+from components.CameraFocus.src.utils.response import build_detections_response
+
+
+
+class Detection(Component):
     def __init__(self, request, bootstrap):
         super().__init__(request, bootstrap)
         self.request.model = PackageModel(**(self.request.data))
 
-        # --- Config Parametreleri (Ortak) ---
+
         self.center_marker = self.request.get_param("ShowCenterMarker")
         self.show_hud = self.request.get_param("ShowHUD")
         self.focus_peaking = self.request.get_param("ShowFocusPeaking")
@@ -36,8 +35,6 @@ class Package(Component):
         self.over_exposed = self.request.get_param("conf_overexposedThreshold")
         self.under_exposed = self.request.get_param("conf_underexposedThreshold")
 
-        # --- INPUTLAR ---
-        # Detection modunda İKİ input vardır
         self.image = self.request.get_param("inputImage")
         self.inputDetections = self.request.get_param("inputDetections")
 

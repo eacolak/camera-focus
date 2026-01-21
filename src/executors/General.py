@@ -16,19 +16,16 @@ from sdks.novavision.src.base.component import Component
 from sdks.novavision.src.helper.executor import Executor
 from components.CameraFocus.src.models.PackageModel import PackageModel
 
-# Utils fonksiyonları
 from components.CameraFocus.src.utils.utils import process_image
 
-# Response oluşturucu
 from components.CameraFocus.src.utils.response import build_general_response
 
 
-class Package(Component):
+class General(Component):
     def __init__(self, request, bootstrap):
         super().__init__(request, bootstrap)
         self.request.model = PackageModel(**(self.request.data))
 
-        # --- Config Parametreleri (Ortak) ---
         self.center_marker = self.request.get_param("ShowCenterMarker")
         self.show_hud = self.request.get_param("ShowHUD")
         self.focus_peaking = self.request.get_param("ShowFocusPeaking")
@@ -36,14 +33,10 @@ class Package(Component):
         self.over_exposed = self.request.get_param("conf_overexposedThreshold")
         self.under_exposed = self.request.get_param("conf_underexposedThreshold")
 
-        # --- INPUTLAR ---
-        # General modda sadece inputImage vardır
         self.image = self.request.get_param("inputImage")
 
-        # --- MOD AYARLARI ---
-        # Bu dosya General olduğu için mod sabittir
         self.mode = "General"
-        self.inputDetections = None  # Detection verisi yok
+        self.inputDetections = None
 
     @staticmethod
     def bootstrap(config: dict) -> dict:
@@ -54,8 +47,8 @@ class Package(Component):
 
         img.value = process_image(
             image=img.value,
-            mode=self.mode,               # "General"
-            detections=None,              # Boş
+            mode=self.mode,
+            detections=None,
             show_center=self.center_marker,
             show_hud=self.show_hud,
             show_peaking=self.focus_peaking,

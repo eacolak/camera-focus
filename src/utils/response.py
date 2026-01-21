@@ -1,6 +1,6 @@
 
 from sdks.novavision.src.helper.package import PackageHelper
-from components.CameraFocus.src.models.PackageModel import PackageModel, PackageConfigs, ConfigExecutor, PackageOutputs, PackageResponse, PackageExecutor, OutputImage, DetectionOutputs, DetectionResponse, DetectionExecutor, GeneralOutputs, GeneralResponse, GeneralExecutor
+from components.CameraFocus.src.models.PackageModel import PackageModel, PackageConfigs, ConfigExecutor, OutputImage, DetectionOutputs, DetectionResponse, DetectionExecutor, GeneralOutputs, GeneralResponse, GeneralExecutor
 
 
 def build_detections_response(context):

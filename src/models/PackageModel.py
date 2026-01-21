@@ -255,6 +255,7 @@ class DetectionOutputs(Outputs):
 
 class DetectionRequest(Request):
     inputs: Optional[DetectionInputs]
+    configs: DetectionConfigs
 
     class Config:
         json_schema_extra = {
@@ -266,6 +267,7 @@ class DetectionResponse(Response):
     outputs: DetectionOutputs
 
 class DetectionExecutor(Config):
+    detectionConfigs: DetectionConfigs
     name: Literal["Detection"] = "Detection"
     value: Union[DetectionRequest, DetectionResponse]
     type: Literal["object"] = "object"
@@ -312,6 +314,7 @@ class GeneralOutputs(Outputs):
 
 class GeneralRequest(Request):
     inputs: Optional[GeneralInputs]
+    configs: GeneralConfigs
 
     class Config:
         json_schema_extra = {

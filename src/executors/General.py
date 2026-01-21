@@ -8,11 +8,11 @@ import os
 import sys
 
 # Utils fonksiyonları
-from components.cameraFocus.package.src.utils.utils import (
+from components.cameraFocus.src.utils.utils import (
     process_image
 )
 # Response oluşturucu
-from components.cameraFocus.package.src.utils.response import (
+from components.cameraFocus.src.utils.response import (
     build_general_response
 )
 

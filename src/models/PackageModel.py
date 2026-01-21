@@ -48,9 +48,7 @@ class InputDetections(Input):
 
 
 
-# ==========================================
 # 1. Zebra Warnings
-# ==========================================
 
 class ZebraWarningsFalse(Config):
     name: Literal["False"] = "False"
@@ -85,9 +83,8 @@ class ShowZebraWarnings(Config):
         title = "Show Zebra Warnings"
 
 
-# ==========================================
+
 # 2. Focus Peaking
-# ==========================================
 
 class FocusPeakingFalse(Config):
     name: Literal["False"] = "False"
@@ -122,9 +119,8 @@ class ShowFocusPeaking(Config):
         title = "Show Focus Peaking"
 
 
-# ==========================================
+
 # 3. HUD - Heads Up Display
-# ==========================================
 
 class HudFalse(Config):
     name: Literal["False"] = "False"
@@ -159,9 +155,8 @@ class ShowHUD(Config):
         title = "Show HUD"
 
 
-# ==========================================
+
 # 4. Center Marker
-# ==========================================
 
 class CenterMarkerFalse(Config):
     name: Literal["False"] = "False"

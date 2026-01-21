@@ -1,7 +1,7 @@
 """
-    General Executor Component
-    Focuses on the entire image.
-    Inputs: inputImage
+    Detection Executor Component
+    Focuses on specific detected regions.
+    Inputs: inputImage, inputDetections
 """
 
 import os
@@ -13,7 +13,7 @@ from components.cameraFocus.package.src.utils.utils import (
 )
 # Response oluşturucu
 from components.cameraFocus.package.src.utils.response import (
-    build_general_response
+    build_detections_response
 )
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../'))
@@ -21,7 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../'))
 from sdks.novavision.src.media.image import Image
 from sdks.novavision.src.base.component import Component
 from sdks.novavision.src.helper.executor import Executor
-from components.cameraFocus.package.src.models.PackageModel import PackageModel
+from components.cameraFocus.src.models.PackageModel import PackageModel
 
 
 class Package(Component):
@@ -38,13 +38,11 @@ class Package(Component):
         self.under_exposed = self.request.get_param("conf_underexposedThreshold")
 
         # --- INPUTLAR ---
-        # General modda sadece inputImage vardır
+        # Detection modunda İKİ input vardır
         self.image = self.request.get_param("inputImage")
+        self.inputDetections = self.request.get_param("inputDetections")
 
-        # --- MOD AYARLARI ---
-        # Bu dosya General olduğu için mod sabittir
-        self.mode = "General"
-        self.inputDetections = None  # Detection verisi yok
+        self.mode = "Detection"
 
     @staticmethod
     def bootstrap(config: dict) -> dict:
@@ -55,8 +53,8 @@ class Package(Component):
 
         img.value = process_image(
             image=img.value,
-            mode=self.mode,               # "General"
-            detections=None,              # Boş
+            mode=self.mode,
+            detections=self.inputDetections,
             show_center=self.center_marker,
             show_hud=self.show_hud,
             show_peaking=self.focus_peaking,
@@ -66,7 +64,7 @@ class Package(Component):
         )
 
         self.image = Image.set_frame(img=img, package_uID=self.uID, redis_db=self.redis_db)
-        return build_general_response(context=self)
+        return build_detections_response(context=self)
 
 
 if "__main__" == __name__:

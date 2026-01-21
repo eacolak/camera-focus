@@ -112,22 +112,8 @@ def draw_center_marker(img):
     return img
 
 
-def process_image(
-        image,
-        mode="General",
-        detections=None,
-        show_center=True,
-        show_hud=True,
-        show_peaking=True,
-        show_zebra=True,
-        thresh_over=0.97,
-        thresh_under=0.03
-):
-    """
-    Main processing function.
-    Receives the image, analyzes it, and draws selected visualizations on it.
-    All parameters must be passed as arguments.
-    """
+def process_image(image, mode="General", detections=None, show_center=True, show_hud=True, show_peaking=True,
+                  show_zebra=True, thresh_over=0.97, thresh_under=0.03):
     if len(image.shape) == 3:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         vis_img = image.copy()
@@ -135,17 +121,20 @@ def process_image(
         gray = image
         vis_img = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
+    effects_layer = vis_img.copy()
     focus_map = compute_tenengrad(gray)
     final_score = 0.0
+    mask = None
 
     if mode == "General":
         final_score = np.mean(focus_map)
 
     elif mode == "Detection":
         detection_list = detections
-
         if hasattr(detections, 'value'):
             detection_list = detections.value
+
+        mask = np.zeros(gray.shape, dtype=np.uint8)
 
         if detection_list and isinstance(detection_list, list) and len(detection_list) > 0:
             scores = []
@@ -154,7 +143,6 @@ def process_image(
             for det in detection_list:
                 try:
                     coords = None
-
                     if hasattr(det, "absolute_bounding_box"):
                         coords = det.absolute_bounding_box
                     elif isinstance(det, dict) and "absolute_bounding_box" in det:
@@ -165,7 +153,6 @@ def process_image(
                     if coords:
                         v1, v2, v3, v4 = map(int, coords)
                         x1, y1, x2, y2 = v1, v2, v3, v4
-
                         x1, y1 = max(0, x1), max(0, y1)
                         x2, y2 = min(w, x2), min(h, y2)
 
@@ -173,29 +160,33 @@ def process_image(
                             roi_score = np.mean(focus_map[y1:y2, x1:x2])
                             scores.append(roi_score)
 
+                            cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
+
                             if show_hud:
                                 cv2.rectangle(vis_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
                                 label = f"F:{roi_score:.1f}"
                                 (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-                                cv2.rectangle(vis_img, (x1, y1 - lh - 4), (x1 + lw, y1), (0, 0, 0),
-                                              -1)  # Text background
-                                cv2.putText(vis_img, label, (x1, y1 - 2),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-                except Exception as e:
-                    print(f"DEBUG: Error occurred while processing detection: {e}")
+                                cv2.rectangle(vis_img, (x1, y1 - lh - 4), (x1 + lw, y1), (0, 0, 0), -1)
+                                cv2.putText(vis_img, label, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                except:
+                    pass
 
             if scores:
                 final_score = sum(scores) / len(scores)
         else:
-            cv2.putText(vis_img, "NO DETECTIONS FOUND", (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
+            cv2.putText(vis_img, "NO DETECTIONS", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     if show_zebra:
-        vis_img = draw_zebra(vis_img, gray, thresh_under, thresh_over)
+        effects_layer = draw_zebra(effects_layer, gray, thresh_under, thresh_over)
 
     if show_peaking:
-        vis_img = draw_peaking(vis_img, focus_map)
+        effects_layer = draw_peaking(effects_layer, focus_map)
+
+    if mode == "General":
+        vis_img = effects_layer
+    elif mode == "Detection" and mask is not None:
+        mask_bool = mask > 0
+        vis_img[mask_bool] = effects_layer[mask_bool]
 
     if show_center:
         vis_img = draw_center_marker(vis_img)

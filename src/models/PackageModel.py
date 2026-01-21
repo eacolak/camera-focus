@@ -262,7 +262,6 @@ class DetectionResponse(Response):
     outputs: DetectionOutputs
 
 class DetectionExecutor(Config):
-    detectionConfigs: DetectionConfigs
     name: Literal["Detection"] = "Detection"
     value: Union[DetectionRequest, DetectionResponse]
     type: Literal["object"] = "object"

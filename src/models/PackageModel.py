@@ -116,7 +116,7 @@ class ShowZebraWarnings(Config):
 
 class ConfigPeakingThresholdPercent(Config):
     """
-        "Set the sharpness threshold above which edges are marked as in-focus."
+        Set the sharpness threshold above which edges are marked as in-focus.
     """
     name: Literal["ConfigPeakingThresholdPercent"] = "ConfigPeakingThresholdPercent"
     value: float = Field(default=0.05, ge=0, le=1)

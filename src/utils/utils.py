@@ -2,6 +2,12 @@ import cv2
 import numpy as np
 
 
+def _draw_text_with_outline(img, text, pos, font, scale, color, thickness):
+    x, y = pos
+    cv2.putText(img, text, (x, y), font, scale, (0, 0, 0), thickness + 2)
+    cv2.putText(img, text, (x, y), font, scale, color, thickness)
+
+
 def compute_tenengrad(gray_image):
     gx = cv2.Sobel(gray_image, cv2.CV_32F, 1, 0, ksize=3)
     gy = cv2.Sobel(gray_image, cv2.CV_32F, 0, 1, ksize=3)
@@ -36,42 +42,70 @@ def draw_peaking(img, focus_map, peaking_threshold):
     return img
 
 
-def draw_hud(img, gray, focus_score):
-    display_score = focus_score / 1000.0
-
+def draw_professional_hud(img, gray, original_image, focus_score):
     h, w = img.shape[:2]
-    scale = max(0.5, min(w, h) / 1000.0)
-    box_w, box_h = int(250 * scale), int(120 * scale)
-    margin = 10
+    reference_size = 720
+    scale = min(h, w) / reference_size
+    scale = max(0.4, min(scale, 2.5))
+
+    padding = int(14 * scale)
+    hist_width = int(180 * scale)
+    hist_height = int(50 * scale)
+    margin = int(12 * scale)
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.6 * scale
+    thickness = max(1, int(1.5 * scale))
+    line_spacing = int(6 * scale)
+
+    display_score = focus_score / 1000.0
+    label_text = "GLOBAL FOCUS"
+    score_text = f"{display_score:.1f}"
+
+    label_size = cv2.getTextSize(label_text, font, font_scale, thickness)[0]
+
+    box_width = max(hist_width, label_size[0]) + (padding * 2)
+    box_height = (padding * 3) + label_size[1] + line_spacing + hist_height + int(20 * scale)
 
     overlay = img.copy()
-    cv2.rectangle(overlay, (margin, margin), (margin + box_w, margin + box_h), (0, 0, 0), -1)
-    cv2.addWeighted(overlay, 0.6, img, 0.4, 0, img)
+    cv2.rectangle(overlay, (margin, margin), (margin + box_width, margin + box_height), (0, 0, 0), -1)
+    cv2.addWeighted(overlay, 0.7, img, 0.3, 0, img)
 
-    cv2.rectangle(img, (margin, margin), (margin + box_w, margin + box_h), (255, 255, 255), 1)
-    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.rectangle(img, (margin, margin), (margin + box_width, margin + box_height), (80, 80, 80), 1)
 
-    cv2.putText(img, "GLOBAL FOCUS",
-                (int(margin + 10 * scale), int(margin + 30 * scale)),
-                font, 0.6 * scale, (200, 200, 200), 1)
+    text_x = margin + padding
+    text_y = margin + padding + label_size[1]
 
-    cv2.putText(img, f"{display_score:.1f}",
-                (int(margin + 10 * scale), int(margin + 70 * scale)),
-                font, 1.2 * scale, (0, 255, 0), 2)
+    _draw_text_with_outline(img, label_text, (text_x, text_y), font, font_scale, (200, 200, 200), thickness)
 
-    hist_h = int(40 * scale)
-    hist_w = int(100 * scale)
-    hist_x = margin + box_w - hist_w - 10
-    hist_y = margin + box_h - 10
+    text_y += int(25 * scale)
+    _draw_text_with_outline(img, score_text, (text_x, text_y), font, font_scale * 1.5, (0, 255, 0), thickness + 1)
 
-    hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
-    cv2.normalize(hist, hist, 0, hist_h, cv2.NORM_MINMAX)
+    hist_x = text_x
+    hist_y = text_y + line_spacing + int(10 * scale)
+    hist_bottom = hist_y + hist_height
 
-    bin_w = hist_w / 256
-    for i in range(1, 256):
-        pt1 = (int(hist_x + (i - 1) * bin_w), int(hist_y - hist[i - 1]))
-        pt2 = (int(hist_x + (i) * bin_w), int(hist_y - hist[i]))
-        cv2.line(img, pt1, pt2, (150, 150, 150), 1)
+    cv2.rectangle(img, (hist_x, hist_y), (hist_x + hist_width, hist_bottom), (20, 20, 20), -1)
+
+    x_coords = np.linspace(hist_x, hist_x + hist_width - 1, 256).astype(np.int32)
+
+    if len(original_image.shape) == 3:
+        channel_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # BGR
+        for ch, color in enumerate(channel_colors):
+            hist = cv2.calcHist([original_image], [ch], None, [256], [0, 256])
+            hist_max = hist.max()
+            if hist_max > 0:
+                hist_normalized = (hist / hist_max * hist_height).astype(np.int32).flatten()
+                pts = np.column_stack([x_coords, hist_bottom - hist_normalized]).astype(np.int32)
+                cv2.polylines(img, [pts], False, color, 1)
+
+    gray_hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+    gray_max = gray_hist.max()
+    if gray_max > 0:
+        gray_norm = (gray_hist / gray_max * hist_height).astype(np.int32).flatten()
+        pts = np.column_stack([x_coords, hist_bottom - gray_norm]).astype(np.int32)
+        cv2.polylines(img, [pts], False, (200, 200, 200), 1)
+
     return img
 
 
@@ -141,7 +175,6 @@ def process_image(
         vis_img = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
     focus_map = compute_tenengrad(gray)
-
     global_mean = np.mean(focus_map)
     if global_mean == 0: global_mean = 1e-6
 
@@ -175,17 +208,12 @@ def process_image(
                 x1, y1, x2, y2 = coords
                 if x2 > x1 and y2 > y1:
                     roi_score = np.mean(focus_map[y1:y2, x1:x2])
-
                     focus_confidence = roi_score / global_mean
 
                     cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
 
                     if show_hud:
-
                         label = f"x{focus_confidence:.1f}"
-
-                        (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-                        cv2.rectangle(vis_img, (x1, y1 - lh - 6), (x1 + lw + 4, y1), (0, 0, 0), -1)
 
                         text_color = (0, 255, 0)
                         if focus_confidence < 1.0:
@@ -193,8 +221,15 @@ def process_image(
                         elif focus_confidence < 1.5:
                             text_color = (0, 255, 255)
 
-                        cv2.putText(vis_img, label, (x1 + 2, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
-
+                        _draw_text_with_outline(
+                            vis_img,
+                            label,
+                            (x1 + 5, y1 - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            text_color,
+                            2
+                        )
 
     mask_bool = mask > 0
     vis_img[mask_bool] = effects_layer[mask_bool]
@@ -203,6 +238,6 @@ def process_image(
         vis_img = draw_center_marker(vis_img)
 
     if show_hud and not is_detection_mode:
-        vis_img = draw_hud(vis_img, gray, global_mean)
+        vis_img = draw_professional_hud(vis_img, gray, image, global_mean)
 
     return vis_img

@@ -1,7 +1,7 @@
 
 from pydantic import Field, validator
 from typing import List, Optional, Union, Literal
-from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, Output, Input, Config
+from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, Output, Input, Config, ROI
 
 
 class InputImage(Input):
@@ -48,9 +48,32 @@ class InputDetections(Input):
 
 
 
-# ==========================================
 # 1. Zebra Warnings
-# ==========================================
+class ConfigOverexposedThresholdPercent(Config):
+    """
+        Set the brightness percentage threshold above which pixels are marked as overexposed.
+    """
+    name: Literal["ConfigOverexposedThresholdPercent"] = "ConfigOverexposedThresholdPercent"
+    value: float = Field(default=0.97, ge=0, le=1)
+    type: Literal["number"] = "number"
+    field: Literal["textInput"] = "textInput"
+
+    class Config:
+        title = "Overexposed Threshold"
+
+
+class ConfigUnderexposedThresholdPercent(Config):
+    """
+        Set the brightness percentage upper threshold for underexposed pixels marked in blue.
+    """
+    name: Literal["ConfigUnderexposedThresholdPercent"] = "ConfigUnderexposedThresholdPercent"
+    value: float = Field(default=0.03, ge=0, le=1)
+    type: Literal["number"] = "number"
+    field: Literal["textInput"] = "textInput"
+
+    class Config:
+        title = "Underexposed Threshold"
+
 
 class ZebraWarningsFalse(Config):
     name: Literal["False"] = "False"
@@ -63,6 +86,8 @@ class ZebraWarningsFalse(Config):
 
 
 class ZebraWarningsTrue(Config):
+    configUnderexposedThresholdPercent: ConfigUnderexposedThresholdPercent
+    configOverexposedThresholdPercent: ConfigOverexposedThresholdPercent
     name: Literal["True"] = "True"
     value: Literal[True] = True
     type: Literal["bool"] = "bool"
@@ -79,18 +104,30 @@ class ShowZebraWarnings(Config):
     name: Literal["ShowZebraWarnings"] = "ShowZebraWarnings"
     value: Union[ZebraWarningsTrue, ZebraWarningsFalse]
     type: Literal["object"] = "object"
-    field: Literal["dropdownlist"] = "dropdownlist"
+    field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Zebra Warnings"
 
 
-# ==========================================
+
 # 2. Focus Peaking
-# ==========================================
+
+
+class ConfigPeakingThresholdPercent(Config):
+    """
+        Set the sharpness threshold above which edges are marked as in-focus.
+    """
+    name: Literal["ConfigPeakingThresholdPercent"] = "ConfigPeakingThresholdPercent"
+    value: float = Field(default=0.05, ge=0, le=1)
+    type: Literal["number"] = "number"
+    field: Literal["textInput"] = "textInput"
+
+    class Config:
+        title = "Focus Peaking Threshold"
 
 class FocusPeakingFalse(Config):
-    name: Literal["False"] = "False"
+    name: Literal["focusPeakingFalse"] = "focusPeakingFalse"
     value: Literal[False] = False
     type: Literal["bool"] = "bool"
     field: Literal["option"] = "option"
@@ -100,10 +137,12 @@ class FocusPeakingFalse(Config):
 
 
 class FocusPeakingTrue(Config):
-    name: Literal["True"] = "True"
+    configPeakingThresholdPercent: ConfigPeakingThresholdPercent
+    name: Literal["focusPeakingTrue"] = "focusPeakingTrue"
     value: Literal[True] = True
     type: Literal["bool"] = "bool"
     field: Literal["option"] = "option"
+    
 
     class Config:
         title = "Enable"
@@ -116,15 +155,14 @@ class ShowFocusPeaking(Config):
     name: Literal["ShowFocusPeaking"] = "ShowFocusPeaking"
     value: Union[FocusPeakingTrue, FocusPeakingFalse]
     type: Literal["object"] = "object"
-    field: Literal["dropdownlist"] = "dropdownlist"
+    field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Focus Peaking"
 
 
-# ==========================================
+
 # 3. HUD - Heads Up Display
-# ==========================================
 
 class HudFalse(Config):
     name: Literal["False"] = "False"
@@ -159,9 +197,8 @@ class ShowHUD(Config):
         title = "Show HUD"
 
 
-# ==========================================
+
 # 4. Center Marker
-# ==========================================
 
 class CenterMarkerFalse(Config):
     name: Literal["False"] = "False"
@@ -196,32 +233,6 @@ class ShowCenterMarker(Config):
         title = "Show Center Marker"
 
 
-class ConfigOverexposedThresholdPercent(Config):
-    """
-        Set the brightness percentage threshold above which pixels are marked as overexposed.
-    """
-    name: Literal["conf_overexposedThreshold"] = "conf_overexposedThreshold"
-    value: float = Field(default=0.97, ge=0, le=1)
-    type: Literal["number"] = "number"
-    field: Literal["textInput"] = "textInput"
-
-    class Config:
-        title = "Overexposed Threshold"
-
-
-class ConfigUnderexposedThresholdPercent(Config):
-    """
-        Set the brightness percentage threshold below which pixels are marked as underexposed (blue stripes).
-    """
-    name: Literal["conf_underexposedThreshold"] = "conf_underexposedThreshold"
-    value: float = Field(default=0.03, ge=0, le=1)
-    type: Literal["number"] = "number"
-    field: Literal["textInput"] = "textInput"
-
-    class Config:
-        title = "Underexposed Threshold"
-
-
 
 # Detection Focus
 
@@ -241,12 +252,10 @@ class DetectionInputs(Inputs):
 
 class DetectionConfigs(Configs):
     configDetection: ConfigDetection
-    configUnderexposedThresholdPercent: ConfigUnderexposedThresholdPercent
-    configOverexposedThresholdPercent: ConfigOverexposedThresholdPercent
-    showCenterMarker: ShowCenterMarker
-    showZebraWarnings: ShowZebraWarnings
-    showHUD: ShowHUD
     showFocusPeaking: ShowFocusPeaking
+    showHUD: ShowHUD
+    showZebraWarnings: ShowZebraWarnings
+    showCenterMarker: ShowCenterMarker
 
 
 class DetectionOutputs(Outputs):
@@ -255,6 +264,7 @@ class DetectionOutputs(Outputs):
 
 class DetectionRequest(Request):
     inputs: Optional[DetectionInputs]
+    configs: DetectionConfigs
 
     class Config:
         json_schema_extra = {
@@ -298,12 +308,10 @@ class GeneralInputs(Inputs):
 
 class GeneralConfigs(Configs):
     configGeneral: ConfigGeneral
-    configUnderexposedThresholdPercent: ConfigUnderexposedThresholdPercent
-    configOverexposedThresholdPercent: ConfigOverexposedThresholdPercent
-    showCenterMarker: ShowCenterMarker
-    showZebraWarnings: ShowZebraWarnings
-    showHUD: ShowHUD
     showFocusPeaking: ShowFocusPeaking
+    showHUD: ShowHUD
+    showZebraWarnings: ShowZebraWarnings
+    showCenterMarker: ShowCenterMarker
 
 
 class GeneralOutputs(Outputs):
@@ -312,6 +320,7 @@ class GeneralOutputs(Outputs):
 
 class GeneralRequest(Request):
     inputs: Optional[GeneralInputs]
+    configs: GeneralConfigs
 
     class Config:
         json_schema_extra = {
@@ -355,4 +364,4 @@ class PackageConfigs(Configs):
 class PackageModel(Package):
     configs: PackageConfigs
     type: Literal["component"] = "component"
-    name: Literal["Package"] = "CameraFocus"
+    name: Literal["CameraFocus"] = "CameraFocus"

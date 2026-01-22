@@ -128,7 +128,7 @@ class ShowFocusPeaking(Config):
     name: Literal["ShowFocusPeaking"] = "ShowFocusPeaking"
     value: Union[FocusPeakingTrue, FocusPeakingFalse]
     type: Literal["object"] = "object"
-    field: Literal["dropdownlist"] = "dropdownlist"
+    field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Focus Peaking"

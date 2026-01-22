@@ -91,7 +91,7 @@ class ConfigPeakingThresholdPercent(Config):
     """
         Focus peaking threshold.
     """
-    name: Literal["ConfigPeakingThresholdPercent"] = "ConfigPeakingThresholdPercent"
+    name: Literal["configPeakingThresholdPercent"] = "configPeakingThresholdPercent"
     value: float = Field(default=0.05, ge=0, le=1)
     type: Literal["number"] = "number"
     field: Literal["textInput"] = "textInput"
@@ -110,12 +110,12 @@ class FocusPeakingFalse(Config):
 
 
 class FocusPeakingTrue(Config):
+    configPeakingThresholdPercent: ConfigPeakingThresholdPercent
     name: Literal["True"] = "True"
     value: Literal[True] = True
     type: Literal["bool"] = "bool"
     field: Literal["option"] = "option"
     
-    configPeakingThresholdPercent: ConfigPeakingThresholdPercent
 
     class Config:
         title = "Enable"

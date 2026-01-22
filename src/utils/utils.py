@@ -25,7 +25,7 @@ def draw_zebra(img, gray, under_thresh, over_thresh):
     return img
 
 
-def draw_peaking(img, focus_map, threshold_percent=0.3):
+def draw_peaking(img, focus_map, threshold_percent=0.05):
     max_val = np.max(focus_map)
     if max_val > 0:
         threshold = max_val * threshold_percent
@@ -37,6 +37,8 @@ def draw_peaking(img, focus_map, threshold_percent=0.3):
 
 
 def draw_hud(img, gray, focus_score):
+    display_score = focus_score / 1000.0
+
     h, w = img.shape[:2]
     scale = max(0.5, min(w, h) / 1000.0)
     box_w, box_h = int(250 * scale), int(120 * scale)
@@ -49,10 +51,11 @@ def draw_hud(img, gray, focus_score):
     cv2.rectangle(img, (margin, margin), (margin + box_w, margin + box_h), (255, 255, 255), 1)
     font = cv2.FONT_HERSHEY_SIMPLEX
 
-    cv2.putText(img, "FOCUS SCORE",
+    cv2.putText(img, "GLOBAL FOCUS",
                 (int(margin + 10 * scale), int(margin + 30 * scale)),
                 font, 0.6 * scale, (200, 200, 200), 1)
-    cv2.putText(img, f"{focus_score:.2f}",
+
+    cv2.putText(img, f"{display_score:.1f}",
                 (int(margin + 10 * scale), int(margin + 70 * scale)),
                 font, 1.2 * scale, (0, 255, 0), 2)
 
@@ -85,7 +88,6 @@ def draw_center_marker(img):
 
 def get_bbox_coords(det, w, h):
     coords = None
-
     if isinstance(det, dict) and "boundingBox" in det:
         bbox = det["boundingBox"]
         if isinstance(bbox, dict):
@@ -94,7 +96,6 @@ def get_bbox_coords(det, w, h):
             bw = float(bbox.get("width", 0))
             bh = float(bbox.get("height", 0))
             coords = [l, t, l + bw, t + bh]
-
     elif hasattr(det, "absolute_bounding_box"):
         coords = det.absolute_bounding_box
     elif hasattr(det, "bbox"):
@@ -104,20 +105,14 @@ def get_bbox_coords(det, w, h):
     elif isinstance(det, (list, tuple)) and len(det) >= 4:
         coords = det[:4]
 
-    if coords is None:
-        return None
+    if coords is None: return None
 
     try:
         v1, v2, v3, v4 = map(float, coords)
-
         if v1 <= 1.0 and v3 <= 1.0 and v1 >= 0 and v3 >= 0:
-            x1 = int(v1 * w)
-            y1 = int(v2 * h)
-            x2 = int(v3 * w)
-            y2 = int(v4 * h)
+            x1, y1, x2, y2 = int(v1 * w), int(v2 * h), int(v3 * w), int(v4 * h)
         else:
             x1, y1, x2, y2 = int(v1), int(v2), int(v3), int(v4)
-
         return max(0, x1), max(0, y1), min(w, x2), min(h, y2)
     except:
         return None
@@ -145,6 +140,10 @@ def process_image(
         vis_img = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
     focus_map = compute_tenengrad(gray)
+
+    global_mean = np.mean(focus_map)
+    if global_mean == 0: global_mean = 1e-6
+
     effects_layer = vis_img.copy()
 
     if show_zebra:
@@ -153,7 +152,6 @@ def process_image(
         effects_layer = draw_peaking(effects_layer, focus_map)
 
     mask = np.zeros(gray.shape, dtype=np.uint8)
-    final_score = 0.0
 
     detection_list = []
     is_detection_mode = (detections is not None)
@@ -166,10 +164,7 @@ def process_image(
 
     if not is_detection_mode:
         mask[:] = 255
-        final_score = np.mean(focus_map)
-
     elif detection_list:
-        scores = []
         h, w = gray.shape[:2]
 
         for det in detection_list:
@@ -177,24 +172,28 @@ def process_image(
 
             if coords:
                 x1, y1, x2, y2 = coords
-
                 if x2 > x1 and y2 > y1:
                     roi_score = np.mean(focus_map[y1:y2, x1:x2])
-                    scores.append(roi_score)
+
+                    focus_confidence = roi_score / global_mean
 
                     cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
-                    cv2.rectangle(vis_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
                     if show_hud:
-                        label = f"F:{roi_score:.1f}"
-                        (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-                        cv2.rectangle(vis_img, (x1, y1 - lh - 4), (x1 + lw, y1), (0, 0, 0), -1)
-                        cv2.putText(vis_img, label, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
-        if scores:
-            final_score = sum(scores) / len(scores)
-        else:
-            cv2.putText(vis_img, "INVALID BBOX DATA", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        label = f"x{focus_confidence:.1f}"
+
+                        (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                        cv2.rectangle(vis_img, (x1, y1 - lh - 6), (x1 + lw + 4, y1), (0, 0, 0), -1)
+
+                        text_color = (0, 255, 0)
+                        if focus_confidence < 1.0:
+                            text_color = (0, 0, 255)
+                        elif focus_confidence < 1.5:
+                            text_color = (0, 255, 255)
+
+                        cv2.putText(vis_img, label, (x1 + 2, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
+
 
     mask_bool = mask > 0
     vis_img[mask_bool] = effects_layer[mask_bool]
@@ -203,6 +202,6 @@ def process_image(
         vis_img = draw_center_marker(vis_img)
 
     if show_hud and not is_detection_mode:
-        vis_img = draw_hud(vis_img, gray, final_score)
+        vis_img = draw_hud(vis_img, gray, global_mean)
 
     return vis_img

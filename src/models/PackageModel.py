@@ -86,6 +86,19 @@ class ShowZebraWarnings(Config):
 
 # 2. Focus Peaking
 
+
+class ConfigPeakingThresholdPercent(Config):
+    """
+        Focus peaking threshold.
+    """
+    name: Literal["conf_PeakingThreshold"] = "conf_PeakingThreshold"
+    value: float = Field(default=0.05, ge=0, le=1)
+    type: Literal["number"] = "number"
+    field: Literal["textInput"] = "textInput"
+
+    class Config:
+        title = "Focus Peaking Threshold"
+
 class FocusPeakingFalse(Config):
     name: Literal["False"] = "False"
     value: Literal[False] = False
@@ -97,6 +110,7 @@ class FocusPeakingFalse(Config):
 
 
 class FocusPeakingTrue(Config):
+    configPeakingThresholdPercent: ConfigPeakingThresholdPercent
     name: Literal["True"] = "True"
     value: Literal[True] = True
     type: Literal["bool"] = "bool"

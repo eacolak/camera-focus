@@ -64,7 +64,7 @@ class ConfigOverexposedThresholdPercent(Config):
 
 class ConfigUnderexposedThresholdPercent(Config):
     """
-        Set the brightness percentage threshold below which pixels are marked as underexposed (blue stripes).
+        Set the brightness percentage upper threshold for underexposed pixels marked in blue.
     """
     name: Literal["ConfigUnderexposedThresholdPercent"] = "ConfigUnderexposedThresholdPercent"
     value: float = Field(default=0.03, ge=0, le=1)
@@ -116,7 +116,7 @@ class ShowZebraWarnings(Config):
 
 class ConfigPeakingThresholdPercent(Config):
     """
-        Focus peaking threshold.
+        "Set the sharpness threshold above which edges are marked as in-focus."
     """
     name: Literal["ConfigPeakingThresholdPercent"] = "ConfigPeakingThresholdPercent"
     value: float = Field(default=0.05, ge=0, le=1)

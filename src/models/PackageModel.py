@@ -110,8 +110,8 @@ class FocusPeakingFalse(Config):
 
 
 class FocusPeakingTrue(Config):
-    name: Literal["focusPeakingTrue"] = "focusPeakingTrue"
     configPeakingThresholdPercent: ConfigPeakingThresholdPercent
+    name: Literal["focusPeakingTrue"] = "focusPeakingTrue"
     value: Literal[True] = True
     type: Literal["bool"] = "bool"
     field: Literal["option"] = "option"

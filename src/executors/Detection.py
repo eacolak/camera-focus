@@ -26,18 +26,15 @@ class Detection(Component):
     def __init__(self, request, bootstrap):
         super().__init__(request, bootstrap)
         self.request.model = PackageModel(**(self.request.data))
-
-
         self.center_marker = self.request.get_param("ShowCenterMarker")
         self.show_hud = self.request.get_param("ShowHUD")
         self.focus_peaking = self.request.get_param("ShowFocusPeaking")
         self.zebra_warnings = self.request.get_param("ShowZebraWarnings")
         self.over_exposed = self.request.get_param("conf_overexposedThreshold")
         self.under_exposed = self.request.get_param("conf_underexposedThreshold")
-
+        self.peaking_threshold = self.request.get_param("ConfigPeakingThresholdPercent")
         self.image = self.request.get_param("inputImage")
         self.inputDetections = self.request.get_param("inputDetections")
-
         self.mode = "Detection"
 
     @staticmethod
@@ -56,7 +53,8 @@ class Detection(Component):
             show_peaking=self.focus_peaking,
             show_zebra=self.zebra_warnings,
             thresh_over=self.over_exposed,
-            thresh_under=self.under_exposed
+            thresh_under=self.under_exposed,
+            peaking_threshold=self.peaking_threshold,
         )
 
         self.image = Image.set_frame(img=img, package_uID=self.uID, redis_db=self.redis_db)

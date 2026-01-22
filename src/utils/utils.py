@@ -25,10 +25,10 @@ def draw_zebra(img, gray, under_thresh, over_thresh):
     return img
 
 
-def draw_peaking(img, focus_map, threshold_percent=0.05):
+def draw_peaking(img, focus_map, peaking_threshold):
     max_val = np.max(focus_map)
     if max_val > 0:
-        threshold = max_val * threshold_percent
+        threshold = max_val * peaking_threshold
         mask = focus_map > threshold
         green_layer = np.zeros_like(img)
         green_layer[mask] = [0, 255, 0]
@@ -127,7 +127,8 @@ def process_image(
         show_peaking=True,
         show_zebra=True,
         thresh_over=0.97,
-        thresh_under=0.03
+        thresh_under=0.03,
+        peaking_threshold=0.05,
 ):
     if show_hud is None: show_hud = True
     if show_center is None: show_center = True
@@ -149,7 +150,7 @@ def process_image(
     if show_zebra:
         effects_layer = draw_zebra(effects_layer, gray, thresh_under, thresh_over)
     if show_peaking:
-        effects_layer = draw_peaking(effects_layer, focus_map)
+        effects_layer = draw_peaking(effects_layer, focus_map, peaking_threshold)
 
     mask = np.zeros(gray.shape, dtype=np.uint8)
 

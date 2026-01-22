@@ -42,7 +42,7 @@ def draw_peaking(img, focus_map, peaking_threshold):
     return img
 
 
-def draw_professional_hud(img, gray, original_image, focus_score):
+def draw_hud(img, gray, original_image, focus_score):
     h, w = img.shape[:2]
     reference_size = 720
     scale = min(h, w) / reference_size
@@ -90,7 +90,7 @@ def draw_professional_hud(img, gray, original_image, focus_score):
     x_coords = np.linspace(hist_x, hist_x + hist_width - 1, 256).astype(np.int32)
 
     if len(original_image.shape) == 3:
-        channel_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # BGR
+        channel_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
         for ch, color in enumerate(channel_colors):
             hist = cv2.calcHist([original_image], [ch], None, [256], [0, 256])
             hist_max = hist.max()
@@ -238,6 +238,6 @@ def process_image(
         vis_img = draw_center_marker(vis_img)
 
     if show_hud and not is_detection_mode:
-        vis_img = draw_professional_hud(vis_img, gray, image, global_mean)
+        vis_img = draw_hud(vis_img, gray, image, global_mean)
 
     return vis_img

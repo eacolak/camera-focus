@@ -29,8 +29,8 @@ class General(Component):
         self.show_hud = self.request.get_param("ShowHUD")
         self.focus_peaking = self.request.get_param("ShowFocusPeaking")
         self.zebra_warnings = self.request.get_param("ShowZebraWarnings")
-        self.over_exposed = self.request.get_param("conf_overexposedThreshold")
-        self.under_exposed = self.request.get_param("conf_underexposedThreshold")
+        self.over_exposed = self.request.get_param("ConfigOverexposedThresholdPercent")
+        self.under_exposed = self.request.get_param("ConfigUnderexposedThresholdPercent")
         self.peaking_threshold = self.request.get_param("ConfigPeakingThresholdPercent")
         self.image = self.request.get_param("inputImage")
         self.mode = "General"

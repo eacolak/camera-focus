@@ -49,6 +49,31 @@ class InputDetections(Input):
 
 
 # 1. Zebra Warnings
+class ConfigOverexposedThresholdPercent(Config):
+    """
+        Set the brightness percentage threshold above which pixels are marked as overexposed.
+    """
+    name: Literal["ConfigOverexposedThresholdPercent"] = "ConfigOverexposedThresholdPercent"
+    value: float = Field(default=0.97, ge=0, le=1)
+    type: Literal["number"] = "number"
+    field: Literal["textInput"] = "textInput"
+
+    class Config:
+        title = "Overexposed Threshold"
+
+
+class ConfigUnderexposedThresholdPercent(Config):
+    """
+        Set the brightness percentage threshold below which pixels are marked as underexposed (blue stripes).
+    """
+    name: Literal["ConfigUnderexposedThresholdPercent"] = "ConfigUnderexposedThresholdPercent"
+    value: float = Field(default=0.03, ge=0, le=1)
+    type: Literal["number"] = "number"
+    field: Literal["textInput"] = "textInput"
+
+    class Config:
+        title = "Underexposed Threshold"
+
 
 class ZebraWarningsFalse(Config):
     name: Literal["False"] = "False"
@@ -61,6 +86,8 @@ class ZebraWarningsFalse(Config):
 
 
 class ZebraWarningsTrue(Config):
+    configUnderexposedThresholdPercent: ConfigUnderexposedThresholdPercent
+    configOverexposedThresholdPercent: ConfigOverexposedThresholdPercent
     name: Literal["True"] = "True"
     value: Literal[True] = True
     type: Literal["bool"] = "bool"
@@ -77,7 +104,7 @@ class ShowZebraWarnings(Config):
     name: Literal["ShowZebraWarnings"] = "ShowZebraWarnings"
     value: Union[ZebraWarningsTrue, ZebraWarningsFalse]
     type: Literal["object"] = "object"
-    field: Literal["dropdownlist"] = "dropdownlist"
+    field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Zebra Warnings"
@@ -206,32 +233,6 @@ class ShowCenterMarker(Config):
         title = "Show Center Marker"
 
 
-class ConfigOverexposedThresholdPercent(Config):
-    """
-        Set the brightness percentage threshold above which pixels are marked as overexposed.
-    """
-    name: Literal["conf_overexposedThreshold"] = "conf_overexposedThreshold"
-    value: float = Field(default=0.97, ge=0, le=1)
-    type: Literal["number"] = "number"
-    field: Literal["textInput"] = "textInput"
-
-    class Config:
-        title = "Overexposed Threshold"
-
-
-class ConfigUnderexposedThresholdPercent(Config):
-    """
-        Set the brightness percentage threshold below which pixels are marked as underexposed (blue stripes).
-    """
-    name: Literal["conf_underexposedThreshold"] = "conf_underexposedThreshold"
-    value: float = Field(default=0.03, ge=0, le=1)
-    type: Literal["number"] = "number"
-    field: Literal["textInput"] = "textInput"
-
-    class Config:
-        title = "Underexposed Threshold"
-
-
 
 # Detection Focus
 
@@ -251,12 +252,10 @@ class DetectionInputs(Inputs):
 
 class DetectionConfigs(Configs):
     configDetection: ConfigDetection
-    configUnderexposedThresholdPercent: ConfigUnderexposedThresholdPercent
-    configOverexposedThresholdPercent: ConfigOverexposedThresholdPercent
-    showCenterMarker: ShowCenterMarker
-    showZebraWarnings: ShowZebraWarnings
-    showHUD: ShowHUD
     showFocusPeaking: ShowFocusPeaking
+    showHUD: ShowHUD
+    showZebraWarnings: ShowZebraWarnings
+    showCenterMarker: ShowCenterMarker
 
 
 class DetectionOutputs(Outputs):
@@ -309,12 +308,10 @@ class GeneralInputs(Inputs):
 
 class GeneralConfigs(Configs):
     configGeneral: ConfigGeneral
-    configUnderexposedThresholdPercent: ConfigUnderexposedThresholdPercent
-    configOverexposedThresholdPercent: ConfigOverexposedThresholdPercent
-    showCenterMarker: ShowCenterMarker
-    showZebraWarnings: ShowZebraWarnings
-    showHUD: ShowHUD
     showFocusPeaking: ShowFocusPeaking
+    showHUD: ShowHUD
+    showZebraWarnings: ShowZebraWarnings
+    showCenterMarker: ShowCenterMarker
 
 
 class GeneralOutputs(Outputs):

@@ -1,7 +1,7 @@
-
 from pydantic import Field, validator
 from typing import List, Optional, Union, Literal
-from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, Output, Input, Config, ROI
+from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, \
+    Output, Input, Config, ROI
 
 
 class InputImage(Input):
@@ -23,7 +23,7 @@ class InputImage(Input):
 
 class OutputImage(Output):
     name: Literal["outputImage"] = "outputImage"
-    value: Union[List[Image],Image]
+    value: Union[List[Image], Image]
     type: str = "object"
 
     @validator("type", pre=True, always=True)
@@ -45,7 +45,6 @@ class InputDetections(Input):
 
     class Config:
         title = "Detections"
-
 
 
 # 1. Zebra Warnings
@@ -102,13 +101,12 @@ class ShowZebraWarnings(Config):
         Display diagonal stripes on under/overexposed regions.
     """
     name: Literal["ShowZebraWarnings"] = "ShowZebraWarnings"
-    value: Union[ZebraWarningsTrue, ZebraWarningsFalse]
+    value: Union[ZebraWarningsFalse, ZebraWarningsTrue]
     type: Literal["object"] = "object"
     field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Zebra Warnings"
-
 
 
 # 2. Focus Peaking
@@ -126,6 +124,7 @@ class ConfigPeakingThresholdPercent(Config):
     class Config:
         title = "Focus Peaking Threshold"
 
+
 class FocusPeakingFalse(Config):
     name: Literal["focusPeakingFalse"] = "focusPeakingFalse"
     value: Literal[False] = False
@@ -142,7 +141,6 @@ class FocusPeakingTrue(Config):
     value: Literal[True] = True
     type: Literal["bool"] = "bool"
     field: Literal["option"] = "option"
-    
 
     class Config:
         title = "Enable"
@@ -153,13 +151,12 @@ class ShowFocusPeaking(Config):
         Highlight in-focus areas with green overlay.
     """
     name: Literal["ShowFocusPeaking"] = "ShowFocusPeaking"
-    value: Union[FocusPeakingTrue, FocusPeakingFalse]
+    value: Union[FocusPeakingFalse, FocusPeakingTrue]
     type: Literal["object"] = "object"
     field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Focus Peaking"
-
 
 
 # 3. HUD - Heads Up Display
@@ -189,13 +186,12 @@ class ShowHUD(Config):
         Display focus score and histogram overlay.
     """
     name: Literal["ShowHUD"] = "ShowHUD"
-    value: Union[HudTrue, HudFalse]
+    value: Union[HudFalse, HudTrue]
     type: Literal["object"] = "object"
     field: Literal["dropdownlist"] = "dropdownlist"
 
     class Config:
         title = "Show HUD"
-
 
 
 # 4. Center Marker
@@ -225,13 +221,12 @@ class ShowCenterMarker(Config):
         Display a crosshair at the center of the image.
     """
     name: Literal["ShowCenterMarker"] = "ShowCenterMarker"
-    value: Union[CenterMarkerTrue, CenterMarkerFalse]
+    value: Union[CenterMarkerFalse, CenterMarkerTrue]
     type: Literal["object"] = "object"
     field: Literal["dropdownlist"] = "dropdownlist"
 
     class Config:
         title = "Show Center Marker"
-
 
 
 # Detection Focus
@@ -244,6 +239,7 @@ class ConfigDetection(Config):
 
     class Config:
         title = "Detections"
+
 
 class DetectionInputs(Inputs):
     inputImage: InputImage
@@ -274,6 +270,7 @@ class DetectionRequest(Request):
 
 class DetectionResponse(Response):
     outputs: DetectionOutputs
+
 
 class DetectionExecutor(Config):
     name: Literal["Detection"] = "Detection"
@@ -326,6 +323,7 @@ class GeneralRequest(Request):
         json_schema_extra = {
             "target": "configs"
         }
+
 
 class GeneralResponse(Response):
     outputs: GeneralOutputs

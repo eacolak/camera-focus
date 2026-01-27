@@ -164,8 +164,6 @@ def process_image(
         thresh_under=0.03,
         peaking_threshold=0.05,
 ):
-    if show_hud is None: show_hud = True
-    if show_center is None: show_center = True
 
     if len(image.shape) == 3:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

@@ -5,7 +5,7 @@ from components.CameraFocus.src.models.PackageModel import PackageModel, Package
 
 def build_detections_response(context):
     detectionOutputImage = OutputImage(value=context.image)
-    detectionOutputFocus = OutputDetections(output=context.focus_scores)
+    detectionOutputFocus = OutputDetections(value=context.focus_scores)
     detectionOutputs = DetectionOutputs(outputImage=detectionOutputImage, outputDetections=detectionOutputFocus)
     detectionResponse = DetectionResponse(outputs=detectionOutputs)
     detectionExecutor = DetectionExecutor(value=detectionResponse)

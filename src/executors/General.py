@@ -42,7 +42,7 @@ class General(Component):
     def run(self):
         img = Image.get_frame(img=self.image, redis_db=self.redis_db)
 
-        img.value = process_image(
+        img.value, self.focus_score = process_image(
             image=img.value,
             mode=self.mode,
             detections=None,
@@ -54,6 +54,7 @@ class General(Component):
             peaking_threshold=self.peaking_threshold,
         )
 
+        img.focus_confidence = self.focus_score
         self.image = Image.set_frame(img=img, package_uID=self.uID, redis_db=self.redis_db)
         return build_general_response(context=self)
 

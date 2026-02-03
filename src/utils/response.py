@@ -17,7 +17,7 @@ def build_detections_response(context):
 
 
 def build_general_response(context):
-    generalOutputImages = OutputImage(value=context.t)
+    generalOutputImages = OutputImage(value=context.image)
     generalOutputs = GeneralOutputs(outputImage=generalOutputImages)
     generalResponse = GeneralResponse(outputs=generalOutputs)
     generalExecutor = GeneralExecutor(value=generalResponse)

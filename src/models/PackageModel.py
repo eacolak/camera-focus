@@ -24,6 +24,7 @@ class InputImage(Input):
 class OutputImage(Output):
     name: Literal["outputImage"] = "outputImage"
     value: Union[List[Image], Image]
+    focus_confidence: Optional[float] = []
     type: str = "object"
 
     @validator("type", pre=True, always=True)

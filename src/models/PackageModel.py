@@ -3,10 +3,6 @@ from typing import List, Optional, Union, Literal
 from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, \
     Output, Input, Config, ROI
 
-class Image(Image):
-    focus_confidence: Optional[float] = 0.0
-
-
 class InputImage(Input):
     name: Literal["inputImage"] = "inputImage"
     value: Union[List[Image], Image]

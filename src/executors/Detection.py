@@ -45,8 +45,8 @@ class Detection(Component):
         print("Zebra Warnings: ", self.zebra_warnings)
         print("ShowFocusPeaking: ", self.focus_peaking)
         print("ShowCenterMarker: ", self.center_marker)
-        print("ShowHUD: ", self.show_hud)
-        img.value = process_image(
+
+        img.value, self.focus_scores = process_image(
             image=img.value,
             mode=self.mode,
             detections=self.inputDetections,

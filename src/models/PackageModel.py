@@ -1,7 +1,7 @@
 from pydantic import Field, validator
 from typing import List, Optional, Union, Literal
 from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, \
-    Output, Input, Config, ROI, KeyPoints
+    Output, Input, Config, ROI
 
 
 class InputImage(Input):
@@ -38,15 +38,10 @@ class OutputImage(Output):
         title = "Image"
 
 
-class KeyPoints(KeyPoints):
-    confidence: Optional[float] = 0.0
-
-
 class Detection(Detection):
-    keyPoints: Optional[List[KeyPoints]] = []
     index: Optional[int] = None
     imgUID: Optional[str] = ""
-    segmentType: Optional[str] = ""
+    detection_scores: Optional[List[float]] = []
 
 
 class OutputDetections(Output):

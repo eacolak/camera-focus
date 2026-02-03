@@ -38,13 +38,19 @@ class OutputImage(Output):
         title = "Image"
 
 
+class Detection(Detection):
+    index: Optional[int] = None
+    imgUID: Optional[str] = ""
+    focus_confidence: Optional[float] = []
+
+
 class OutputDetections(Output):
     name: Literal["outputDetections"] = "outputDetections"
-    value: List[float]
+    value: List[Detection]
     type: Literal["list"] = "list"
 
     class Config:
-        title = "Focus Scores"
+        title = "Detections"
 
 
 class InputDetections(Input):

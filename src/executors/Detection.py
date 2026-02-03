@@ -58,6 +58,7 @@ class Detection(Component):
             peaking_threshold=self.peaking_threshold,
         )
 
+
         self.image = Image.set_frame(img=img, package_uID=self.uID, redis_db=self.redis_db)
         return build_detections_response(context=self)
 

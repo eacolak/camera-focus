@@ -24,7 +24,7 @@ class InputImage(Input):
 class OutputImage(Output):
     name: Literal["outputImage"] = "outputImage"
     value: Union[List[Image], Image]
-    focus_confidence: Optional[float] = []
+    focus_confidence: Optional[float] = 0.0
     type: str = "object"
 
     @validator("type", pre=True, always=True)
@@ -42,7 +42,7 @@ class OutputImage(Output):
 class Detections(Detection):
     index: Optional[int] = None
     imgUID: Optional[str] = ""
-    focus_confidence: Optional[float] = []
+    focus_confidence: Optional[float] = 0.0
 
 
 class OutputDetections(Output):

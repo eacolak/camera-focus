@@ -55,6 +55,8 @@ class General(Component):
         )
 
         img.focus_confidence = self.focus_score
+        print(f"Focused score: {img.focus_confidence}")
+
         self.image = Image.set_frame(img=img, package_uID=self.uID, redis_db=self.redis_db)
         return build_general_response(context=self)
 

@@ -3,6 +3,9 @@ from typing import List, Optional, Union, Literal
 from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, \
     Output, Input, Config, ROI
 
+class Image(Image):
+    focus_confidence: Optional[float] = 0.0
+
 
 class InputImage(Input):
     name: Literal["inputImage"] = "inputImage"
@@ -24,7 +27,6 @@ class InputImage(Input):
 class OutputImage(Output):
     name: Literal["outputImage"] = "outputImage"
     value: Union[List[Image], Image]
-    focus_confidence: Optional[float] = 0.0
     type: str = "object"
 
     @validator("type", pre=True, always=True)
@@ -39,7 +41,7 @@ class OutputImage(Output):
         title = "Image"
 
 
-class Detections(Detection):
+class Detection(Detection):
     index: Optional[int] = None
     imgUID: Optional[str] = ""
     focus_confidence: Optional[float] = 0.0
@@ -47,7 +49,7 @@ class Detections(Detection):
 
 class OutputDetections(Output):
     name: Literal["outputDetections"] = "outputDetections"
-    value: List[Detections]
+    value: List[Detection]
     type: Literal["list"] = "list"
 
     class Config:

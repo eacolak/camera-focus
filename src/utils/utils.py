@@ -76,7 +76,6 @@ def process_image(
         thresh_under=0.03,
         peaking_threshold=0.05,
 ):
-    # 1. Görüntü Hazırlığı
     if len(image.shape) == 3:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         vis_img = image.copy()
@@ -84,12 +83,10 @@ def process_image(
         gray = image
         vis_img = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
-    # 2. Netlik Hesaplama
     focus_map = compute_tenengrad(gray)
     global_mean = np.mean(focus_map)
     if global_mean == 0: global_mean = 1e-6
 
-    # 3. Efekt Katmanını Hazırla
     effects_layer = vis_img.copy()
     if show_zebra:
         effects_layer = draw_zebra(effects_layer, gray, thresh_under, thresh_over)
@@ -97,32 +94,24 @@ def process_image(
         effects_layer = draw_peaking(effects_layer, focus_map, peaking_threshold)
 
     mask = np.zeros(gray.shape, dtype=np.uint8)
-
-    # Çıktı verisi (General için float, Detection için Liste olacak)
     output_data = None
 
-    # Detection listesini ayıkla
     detection_list = []
-    if detections and isinstance(detections, dict):
-        detection_list = detections.get("value", [])
 
-    # --- MOD KONTROLÜ VE VERİ İŞLEME ---
+    if detections:
+        if isinstance(detections, list):
+            detection_list = detections
+        elif isinstance(detections, dict):
+            detection_list = detections.get("value", [])
 
     if mode == "Detection":
-        # >>> DETECTION MODU <<<
 
         if detection_list:
             h, w = gray.shape[:2]
 
-            # REFERANS İLE GÜNCELLEME:
-            # detection_list, self.inputDetections["value"] listesini işaret eder.
-            # Burada yapılan değişiklikler, detection_list elemanlarına (sözlüklere)
-            # doğrudan focus_confidence anahtarını ekler.
-
             for det in detection_list:
                 coords = get_bbox_coords(det, w, h)
 
-                # Varsayılan değer
                 score = 0.0
 
                 if coords:
@@ -131,27 +120,21 @@ def process_image(
                         roi_score = np.mean(focus_map[y1:y2, x1:x2])
                         score = float(roi_score / global_mean)
 
-                        # Maskeleme (Efektler sadece kutu içinde görünsün)
                         cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
 
-                # --- KRİTİK: SÖZLÜĞE DOĞRUDAN EKLEME ---
                 det['focus_confidence'] = score
 
-            # Güncellenmiş listeyi döndür
             output_data = detection_list
         else:
             output_data = []
 
     else:
-        # >>> GENERAL MOD <<<
         output_data = float(global_mean)
-        mask[:] = 255  # Tüm ekranı maskele
+        mask[:] = 255
 
-    # 4. Efektleri Uygula
     mask_bool = mask > 0
     vis_img[mask_bool] = effects_layer[mask_bool]
 
-    # 5. Center Marker
     if show_center:
         vis_img = draw_center_marker(vis_img)
 

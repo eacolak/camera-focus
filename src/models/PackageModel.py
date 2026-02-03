@@ -41,6 +41,7 @@ class OutputImage(Output):
 class Detection(Detection):
     index: Optional[int] = None
     imgUID: Optional[str] = ""
+    value: Optional[list] = 0.0
     detection_scores: Optional[List[float]] = []
 
 

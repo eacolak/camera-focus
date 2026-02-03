@@ -18,6 +18,7 @@ def draw_zebra(img, gray, under_thresh, over_thresh):
     """
     height, width = gray.shape
     y, x = np.ogrid[:height, :width]
+    # 8 piksellik diyagonal çizgiler
     zebra_mask = ((x + y) // 8) % 2 == 0
 
     u_th = int(under_thresh * 255)
@@ -61,35 +62,23 @@ def draw_center_marker(img):
 
 def get_bbox_coords(det, w, h):
     """
-    Farklı formatlardaki bounding box verilerini OpenCV formatına çevirir.
+    Standart Detection yapısından koordinatları çeker.
+    Yapı: det['boundingBox']['left'/'top'/'width'/'height']
     """
-    coords = None
-    if isinstance(det, dict) and "boundingBox" in det:
-        bbox = det["boundingBox"]
-        if isinstance(bbox, dict):
-            l = float(bbox.get("left", 0))
-            t = float(bbox.get("top", 0))
-            bw = float(bbox.get("width", 0))
-            bh = float(bbox.get("height", 0))
-            coords = [l, t, l + bw, t + bh]
-    elif hasattr(det, "absolute_bounding_box"):
-        coords = det.absolute_bounding_box
-    elif hasattr(det, "bbox"):
-        coords = det.bbox
-    elif isinstance(det, dict) and "absolute_bounding_box" in det:
-        coords = det["absolute_bounding_box"]
-    elif isinstance(det, (list, tuple)) and len(det) >= 4:
-        coords = det[:4]
-
-    if coords is None: return None
-
     try:
-        v1, v2, v3, v4 = map(float, coords)
-        if v1 <= 1.0 and v3 <= 1.0 and v1 >= 0 and v3 >= 0:
-            x1, y1, x2, y2 = int(v1 * w), int(v2 * h), int(v3 * w), int(v4 * h)
-        else:
-            x1, y1, x2, y2 = int(v1), int(v2), int(v3), int(v4)
-        return max(0, x1), max(0, y1), min(w, x2), min(h, y2)
+        bbox = det["boundingBox"]
+        x1 = int(bbox["left"])
+        y1 = int(bbox["top"])
+        x2 = int(bbox["left"] + bbox["width"])
+        y2 = int(bbox["top"] + bbox["height"])
+
+        # Görüntü sınırları dışına taşmayı önle (Clip)
+        x1 = max(0, x1)
+        y1 = max(0, y1)
+        x2 = min(w, x2)
+        y2 = min(h, y2)
+
+        return x1, y1, x2, y2
     except:
         return None
 
@@ -107,9 +96,10 @@ def process_image(
 ):
     """
     Görüntü işleme fonksiyonu.
+
     Returns:
-        vis_img: İşlenmiş görüntü.
-        output_data: General modda float, Detection modda list.
+        vis_img (numpy.ndarray): İşlenmiş görüntü.
+        output_data (float | list): General modda tek float, Detection modda liste.
     """
 
     # 1. Görüntü Hazırlığı
@@ -136,26 +126,22 @@ def process_image(
     mask = np.zeros(gray.shape, dtype=np.uint8)
     output_data = None
 
-    # Detection verisini hazırla
+    # Detection listesini ayıkla (Doğrudan 'value' key'inden)
     detection_list = []
-    if detections:
-        if hasattr(detections, 'value'):
-            detection_list = detections.value
-        elif isinstance(detections, list):
-            detection_list = detections
+    if detections and isinstance(detections, dict):
+        detection_list = detections.get("value", [])
 
-    # --- DÜZELTİLEN MANTIK ---
+    # --- MOD KONTROLÜ ---
 
     if mode == "Detection":
         # >>> DETECTION MODU <<<
-        # Çıktı formatı kesinlikle bir LİSTE olacak (Boş veya Dolu)
-        output_data = []
+        output_data = []  # Çıktı her zaman liste
 
-        # Eğer detection varsa işlemleri yap, yoksa hiçbir şey yapma (Maske siyah kalsın)
         if detection_list:
             h, w = gray.shape[:2]
             for det in detection_list:
                 coords = get_bbox_coords(det, w, h)
+
                 if coords:
                     x1, y1, x2, y2 = coords
                     if x2 > x1 and y2 > y1:
@@ -163,24 +149,21 @@ def process_image(
                         roi_score = np.mean(focus_map[y1:y2, x1:x2])
                         # Confidence
                         output_data.append(roi_score / global_mean)
-                        # Maskeleme
+                        # Maskeleme (Efektler için beyaz alan)
                         cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
                     else:
                         output_data.append(0.0)
                 else:
                     output_data.append(0.0)
 
-        # Eğer detection_list boşsa, output_data [] döner, maske siyah kalır.
+        # Detection yoksa output_data [] kalır, maske siyah kalır.
 
     else:
         # >>> GENERAL MOD <<<
-        # Çıktı formatı tek bir FLOAT
-        output_data = float(global_mean)
-        # Maskeyi beyaza boya (Efektler tüm ekranda)
-        mask[:] = 255
+        output_data = float(global_mean)  # Çıktı tek float
+        mask[:] = 255  # Tüm ekranı maskele
 
     # 5. Efektleri Uygula
-    # (Detection modunda maske siyahsa hiçbir efekt uygulanmaz, resim temiz kalır)
     mask_bool = mask > 0
     vis_img[mask_bool] = effects_layer[mask_bool]
 

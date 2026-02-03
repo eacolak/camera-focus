@@ -1,7 +1,7 @@
 from pydantic import Field, validator
 from typing import List, Optional, Union, Literal
 from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, \
-    Output, Input, Config, ROI
+    Output, Input, Config, ROI, KeyPoints
 
 
 class InputImage(Input):
@@ -36,6 +36,26 @@ class OutputImage(Output):
 
     class Config:
         title = "Image"
+
+
+class KeyPoints(KeyPoints):
+    confidence: Optional[float] = 0.0
+
+
+class Detection(Detection):
+    keyPoints: Optional[List[KeyPoints]] = []
+    index: Optional[int] = None
+    imgUID: Optional[str] = ""
+    segmentType: Optional[str] = ""
+
+
+class OutputDetections(Output):
+    name: Literal["outputDetections"] = "outputDetections"
+    value: List[Detection]
+    type: Literal["list"] = "list"
+
+    class Config:
+        title = "Detections"
 
 
 class InputDetections(Input):
@@ -158,42 +178,6 @@ class ShowFocusPeaking(Config):
     class Config:
         title = "Show Focus Peaking"
 
-
-# 3. HUD - Heads Up Display
-
-class HudFalse(Config):
-    name: Literal["False"] = "False"
-    value: Literal[False] = False
-    type: Literal["bool"] = "bool"
-    field: Literal["option"] = "option"
-
-    class Config:
-        title = "Disable"
-
-
-class HudTrue(Config):
-    name: Literal["True"] = "True"
-    value: Literal[True] = True
-    type: Literal["bool"] = "bool"
-    field: Literal["option"] = "option"
-
-    class Config:
-        title = "Enable"
-
-
-class ShowHUD(Config):
-    """
-        Display focus score and histogram overlay.
-    """
-    name: Literal["ShowHUD"] = "ShowHUD"
-    value: Union[HudFalse, HudTrue]
-    type: Literal["object"] = "object"
-    field: Literal["dropdownlist"] = "dropdownlist"
-
-    class Config:
-        title = "Show HUD"
-
-
 # 4. Center Marker
 
 class CenterMarkerFalse(Config):
@@ -249,13 +233,13 @@ class DetectionInputs(Inputs):
 class DetectionConfigs(Configs):
     configDetection: ConfigDetection
     showFocusPeaking: ShowFocusPeaking
-    showHUD: ShowHUD
     showZebraWarnings: ShowZebraWarnings
     showCenterMarker: ShowCenterMarker
 
 
 class DetectionOutputs(Outputs):
     outputImage: OutputImage
+    outputDetections: OutputDetections
 
 
 class DetectionRequest(Request):
@@ -306,7 +290,6 @@ class GeneralInputs(Inputs):
 class GeneralConfigs(Configs):
     configGeneral: ConfigGeneral
     showFocusPeaking: ShowFocusPeaking
-    showHUD: ShowHUD
     showZebraWarnings: ShowZebraWarnings
     showCenterMarker: ShowCenterMarker
 

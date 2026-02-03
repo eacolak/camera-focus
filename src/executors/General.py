@@ -26,7 +26,6 @@ class General(Component):
         super().__init__(request, bootstrap)
         self.request.model = PackageModel(**(self.request.data))
         self.center_marker = self.request.get_param("ShowCenterMarker")
-        self.show_hud = self.request.get_param("ShowHUD")
         self.focus_peaking = self.request.get_param("ShowFocusPeaking")
         self.zebra_warnings = self.request.get_param("ShowZebraWarnings")
         self.over_exposed = self.request.get_param("ConfigOverexposedThresholdPercent")
@@ -48,7 +47,6 @@ class General(Component):
             mode=self.mode,
             detections=None,
             show_center=self.center_marker,
-            show_hud=self.show_hud,
             show_peaking=self.focus_peaking,
             show_zebra=self.zebra_warnings,
             thresh_over=self.over_exposed,

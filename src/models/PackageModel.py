@@ -172,7 +172,7 @@ class ShowFocusPeaking(Config):
     class Config:
         title = "Show Focus Peaking"
 
-# 4. Center Marker
+# 3. Center Marker
 
 class CenterMarkerFalse(Config):
     name: Literal["False"] = "False"

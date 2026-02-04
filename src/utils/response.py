@@ -1,11 +1,12 @@
 
 from sdks.novavision.src.helper.package import PackageHelper
-from components.CameraFocus.src.models.PackageModel import PackageModel, PackageConfigs, ConfigExecutor, OutputImage, DetectionOutputs, DetectionResponse, DetectionExecutor, GeneralOutputs, GeneralResponse, GeneralExecutor
+from components.CameraFocus.src.models.PackageModel import PackageModel, PackageConfigs, ConfigExecutor, OutputImage, DetectionOutputs, DetectionResponse, DetectionExecutor, GeneralOutputs, GeneralResponse, GeneralExecutor, OutputDetections
 
 
 def build_detections_response(context):
     detectionOutputImage = OutputImage(value=context.image)
-    detectionOutputs = DetectionOutputs(outputImage=detectionOutputImage)
+    detectionOutputFocus = OutputDetections(value=context.focus_scores)
+    detectionOutputs = DetectionOutputs(outputImage=detectionOutputImage, outputDetections=detectionOutputFocus)
     detectionResponse = DetectionResponse(outputs=detectionOutputs)
     detectionExecutor = DetectionExecutor(value=detectionResponse)
     executor = ConfigExecutor(value=detectionExecutor)
@@ -13,6 +14,7 @@ def build_detections_response(context):
     package = PackageHelper(packageModel=PackageModel, packageConfigs=packageConfigs)
     packageModel = package.build_model(context)
     return packageModel
+
 
 def build_general_response(context):
     generalOutputImages = OutputImage(value=context.image)

@@ -26,7 +26,6 @@ class General(Component):
         super().__init__(request, bootstrap)
         self.request.model = PackageModel(**(self.request.data))
         self.center_marker = self.request.get_param("ShowCenterMarker")
-        self.show_hud = self.request.get_param("ShowHUD")
         self.focus_peaking = self.request.get_param("ShowFocusPeaking")
         self.zebra_warnings = self.request.get_param("ShowZebraWarnings")
         self.over_exposed = self.request.get_param("ConfigOverexposedThresholdPercent")
@@ -43,18 +42,20 @@ class General(Component):
     def run(self):
         img = Image.get_frame(img=self.image, redis_db=self.redis_db)
 
-        img.value = process_image(
+        img.value, self.focus_score = process_image(
             image=img.value,
             mode=self.mode,
             detections=None,
             show_center=self.center_marker,
-            show_hud=self.show_hud,
             show_peaking=self.focus_peaking,
             show_zebra=self.zebra_warnings,
             thresh_over=self.over_exposed,
             thresh_under=self.under_exposed,
             peaking_threshold=self.peaking_threshold,
         )
+
+        img.focus_confidence = self.focus_score
+        print(f"Focused score: {img.focus_confidence}")
 
         self.image = Image.set_frame(img=img, package_uID=self.uID, redis_db=self.redis_db)
         return build_general_response(context=self)

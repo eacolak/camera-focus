@@ -275,9 +275,6 @@ class DetectionResponse(Response):
 
 
 class DetectionExecutor(Config):
-    """
-    Apply focus tools and overlays specifically to detected objects (ROIs).
-    """
     name: Literal["Detection"] = "Detection"
     value: Union[DetectionRequest, DetectionResponse]
     type: Literal["object"] = "object"
@@ -286,8 +283,7 @@ class DetectionExecutor(Config):
     class Config:
         title = "Detections"
         json_schema_extra = {
-            "target": {"value": 0},
-            "shortDescription": "Object Focus"
+            "target": {"value": 0}
         }
 
 
@@ -333,9 +329,6 @@ class GeneralResponse(Response):
 
 
 class GeneralExecutor(Config):
-    """
-    Apply focus tools and overlays to the entire image frame.
-    """
     name: Literal["General"] = "General"
     value: Union[GeneralRequest, GeneralResponse]
     type: Literal["object"] = "object"
@@ -344,8 +337,7 @@ class GeneralExecutor(Config):
     class Config:
         title = "General"
         json_schema_extra = {
-            "target": {"value": 0},
-            "shortDescription": "Global Focus"
+            "target": {"value": 0}
         }
 
 

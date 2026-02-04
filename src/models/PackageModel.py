@@ -1,7 +1,7 @@
 from pydantic import Field, validator
 from typing import List, Optional, Union, Literal
-from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, \
-    Output, Input, Config, ROI
+from sdks.novavision.src.base.model import Package, Image, Detection, Inputs, Configs, Outputs, Response, Request, Output, Input, Config, ROI
+
 
 class InputImage(Input):
     name: Literal["inputImage"] = "inputImage"
@@ -37,21 +37,6 @@ class OutputImage(Output):
         title = "Image"
 
 
-class Detection(Detection):
-    index: Optional[int] = None
-    imgUID: Optional[str] = ""
-    focus_confidence: Optional[float] = 0.0
-
-
-class OutputDetections(Output):
-    name: Literal["outputDetections"] = "outputDetections"
-    value: List[Detection]
-    type: Literal["list"] = "list"
-
-    class Config:
-        title = "Detections"
-
-
 class InputDetections(Input):
     name: Literal["inputDetections"] = "inputDetections"
     value: Union[List[Detection], List[ROI]]
@@ -61,10 +46,12 @@ class InputDetections(Input):
         title = "Detections"
 
 
+
 # 1. Zebra Warnings
+
 class ConfigOverexposedThresholdPercent(Config):
     """
-        Set the brightness percentage threshold above which pixels are marked as overexposed.
+    Set the brightness percentage threshold (0.0 - 1.0) above which pixels are marked as overexposed.
     """
     name: Literal["ConfigOverexposedThresholdPercent"] = "ConfigOverexposedThresholdPercent"
     value: float = Field(default=0.97, ge=0, le=1)
@@ -73,11 +60,14 @@ class ConfigOverexposedThresholdPercent(Config):
 
     class Config:
         title = "Overexposed Threshold"
+        json_schema_extra = {
+            "shortDescription": "High Limit"
+        }
 
 
 class ConfigUnderexposedThresholdPercent(Config):
     """
-        Set the brightness percentage upper threshold for underexposed pixels marked in blue.
+    Set the brightness percentage threshold (0.0 - 1.0) below which pixels are marked as underexposed (blue stripes).
     """
     name: Literal["ConfigUnderexposedThresholdPercent"] = "ConfigUnderexposedThresholdPercent"
     value: float = Field(default=0.03, ge=0, le=1)
@@ -86,6 +76,9 @@ class ConfigUnderexposedThresholdPercent(Config):
 
     class Config:
         title = "Underexposed Threshold"
+        json_schema_extra = {
+            "shortDescription": "Low Limit"
+        }
 
 
 class ZebraWarningsFalse(Config):
@@ -112,23 +105,27 @@ class ZebraWarningsTrue(Config):
 
 class ShowZebraWarnings(Config):
     """
-        Display diagonal stripes on under/overexposed regions.
+    Display diagonal stripes on under or overexposed regions. 
+    Helps in identifying areas that are too bright (blown out) or too dark (crushed blacks).
     """
     name: Literal["ShowZebraWarnings"] = "ShowZebraWarnings"
-    value: Union[ZebraWarningsFalse, ZebraWarningsTrue]
+    value: Union[ZebraWarningsTrue, ZebraWarningsFalse]
     type: Literal["object"] = "object"
     field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Zebra Warnings"
+        json_schema_extra = {
+            "shortDescription": "Exposure Stripes"
+        }
 
 
 # 2. Focus Peaking
 
-
 class ConfigPeakingThresholdPercent(Config):
     """
-        Set the sharpness threshold above which edges are marked as in-focus.
+    Set the sharpness threshold above which edges are marked as in-focus.
+    Lower values show more peaking; higher values are stricter.
     """
     name: Literal["ConfigPeakingThresholdPercent"] = "ConfigPeakingThresholdPercent"
     value: float = Field(default=0.05, ge=0, le=1)
@@ -137,6 +134,9 @@ class ConfigPeakingThresholdPercent(Config):
 
     class Config:
         title = "Focus Peaking Threshold"
+        json_schema_extra = {
+            "shortDescription": "Sharpness Sensitivity"
+        }
 
 
 class FocusPeakingFalse(Config):
@@ -162,17 +162,61 @@ class FocusPeakingTrue(Config):
 
 class ShowFocusPeaking(Config):
     """
-        Highlight in-focus areas with green overlay.
+    Highlight in-focus areas with a colored overlay (typically green). 
+    Essential for manual focusing to ensure the subject is sharp.
     """
     name: Literal["ShowFocusPeaking"] = "ShowFocusPeaking"
-    value: Union[FocusPeakingFalse, FocusPeakingTrue]
+    value: Union[FocusPeakingTrue, FocusPeakingFalse]
     type: Literal["object"] = "object"
     field: Literal["dependentDropdownlist"] = "dependentDropdownlist"
 
     class Config:
         title = "Show Focus Peaking"
+        json_schema_extra = {
+            "shortDescription": "Focus Assist"
+        }
 
-# 3. Center Marker
+
+# 3. HUD - Heads Up Display
+
+class HudFalse(Config):
+    name: Literal["False"] = "False"
+    value: Literal[False] = False
+    type: Literal["bool"] = "bool"
+    field: Literal["option"] = "option"
+
+    class Config:
+        title = "Disable"
+
+
+class HudTrue(Config):
+    name: Literal["True"] = "True"
+    value: Literal[True] = True
+    type: Literal["bool"] = "bool"
+    field: Literal["option"] = "option"
+
+    class Config:
+        title = "Enable"
+
+
+class ShowHUD(Config):
+    """
+    Display a Heads-Up Display (HUD) with focus score and histogram. 
+    Provides real-time analytics on image exposure and focus quality.
+    """
+    name: Literal["ShowHUD"] = "ShowHUD"
+    value: Union[HudTrue, HudFalse]
+    type: Literal["object"] = "object"
+    field: Literal["dropdownlist"] = "dropdownlist"
+
+    class Config:
+        title = "Show HUD"
+        json_schema_extra = {
+            "shortDescription": "Info Overlay"
+        }
+
+
+# 4. Center Marker
 
 class CenterMarkerFalse(Config):
     name: Literal["False"] = "False"
@@ -196,15 +240,19 @@ class CenterMarkerTrue(Config):
 
 class ShowCenterMarker(Config):
     """
-        Display a crosshair at the center of the image.
+    Display a crosshair at the center of the image.
+    Useful for centering the subject or aligning the camera.
     """
     name: Literal["ShowCenterMarker"] = "ShowCenterMarker"
-    value: Union[CenterMarkerFalse, CenterMarkerTrue]
+    value: Union[CenterMarkerTrue, CenterMarkerFalse]
     type: Literal["object"] = "object"
     field: Literal["dropdownlist"] = "dropdownlist"
 
     class Config:
         title = "Show Center Marker"
+        json_schema_extra = {
+            "shortDescription": "Center Crosshair"
+        }
 
 
 # Detection Focus
@@ -227,13 +275,13 @@ class DetectionInputs(Inputs):
 class DetectionConfigs(Configs):
     configDetection: ConfigDetection
     showFocusPeaking: ShowFocusPeaking
+    showHUD: ShowHUD
     showZebraWarnings: ShowZebraWarnings
     showCenterMarker: ShowCenterMarker
 
 
 class DetectionOutputs(Outputs):
     outputImage: OutputImage
-    outputDetections: OutputDetections
 
 
 class DetectionRequest(Request):
@@ -284,6 +332,7 @@ class GeneralInputs(Inputs):
 class GeneralConfigs(Configs):
     configGeneral: ConfigGeneral
     showFocusPeaking: ShowFocusPeaking
+    showHUD: ShowHUD
     showZebraWarnings: ShowZebraWarnings
     showCenterMarker: ShowCenterMarker
 
@@ -322,6 +371,10 @@ class GeneralExecutor(Config):
 
 
 class ConfigExecutor(Config):
+    """
+    Select the focus analysis mode:
+    'General' for full-screen analysis or 'Detection' for specific areas.
+    """
     name: Literal["ConfigExecutor"] = "ConfigExecutor"
     value: Union[GeneralExecutor, DetectionExecutor]
     type: Literal["executor"] = "executor"
@@ -330,6 +383,9 @@ class ConfigExecutor(Config):
 
     class Config:
         title = "Task"
+        json_schema_extra = {
+            "shortDescription": "Focus Mode"
+        }
 
 
 class PackageConfigs(Configs):

@@ -3,8 +3,9 @@ import numpy as np
 
 
 def compute_tenengrad(gray_image):
-    gx = cv2.Sobel(gray_image, cv2.CV_32F, 1, 0, ksize=3)
-    gy = cv2.Sobel(gray_image, cv2.CV_32F, 0, 1, ksize=3)
+    blurred = cv2.GaussianBlur(gray_image, (11, 11), 0)
+    gx = cv2.Sobel(blurred, cv2.CV_32F, 1, 0, ksize=3)
+    gy = cv2.Sobel(blurred, cv2.CV_32F, 0, 1, ksize=3)
     focus_measure = cv2.add(np.square(gx), np.square(gy))
     return focus_measure
 
